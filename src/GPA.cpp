@@ -19,6 +19,8 @@ struct Students {
     string name;
     vector<Course> courses;
 };
+// -------- Declaring function ------
+void displayStudent(const Students& student);
 
 // ------ Letter Grade Support -------
 double convertLetterToGPA(string grade) {
@@ -101,6 +103,27 @@ void saveResultsToFile(const vector<Students>& students, const string& filename)
     outputFile.close();
     cout << "\n✅ Results saved to '" << filename << "' successfully!\n";
 }
+// -------Adding a function to search for students----
+void searchStudentByName(const vector<Students>& studentRecords) {
+    string searchName;
+    cout << "\nEnter student name to search: ";
+    cin.ignore(); // clear leftover newline
+    getline(cin >> ws, searchName);
+
+    bool found = false;
+    for (const auto& student : studentRecords) {
+        if (student.name == searchName) {
+            displayStudent(student);  // calls the display function we defined earlier
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        cout << "\n❌ Student '" << searchName << "' not found.\n";
+    }
+}
+
 
 // ------- Main Menu Function -------
 int main() {
@@ -122,10 +145,20 @@ int main() {
                 cin.ignore(); // Clear buffer
                 cout << "\nEnter student name: ";
                 getline(cin, student.name);
+                // error handling for empty name
+                if (student.name .empty()){
+                    cout <<"❌ Name cannot be empty. Please try again.\n";
+                    break;
+                }
 
                 int numCourses;
                 cout << "Enter number of courses: ";
                 cin >> numCourses;
+
+                // error handling for invalid number of courses
+                if(numCourses <= 0) {
+                    cout <<"❌ Invalid number of courses. Please try again.\n";
+                }
 
                 for (int c = 0; c < numCourses; c++) {
                     Course course;
@@ -139,6 +172,11 @@ int main() {
                     if (course.gradeInput == "mark") {
                         cout << "Enter numeric score (0-100): ";
                         cin >> course.numericScore;
+
+                        // error handling for invalid numeric score
+                        if (course.numericScore < 0 || course.numericScore >100) {
+                            cout <<"❌ Invalid score. Please enter a score between 0 and 100.\n";
+                        }
                     } else if (course.gradeInput == "letter") {
                         cout << "Enter letter grade (A, B+, etc.): ";
                         cin >> course.letterGrade;
@@ -179,15 +217,19 @@ int main() {
                 break;
             }
 
-            case 4:
-                cout << "\nExiting program...\n";
+            case 4: {
+                searchStudentByName(students);
+                break;
+            }
+            case 5:
+                cout << "\nExiting the program. Goodbye!\n";
                 break;
 
             default:
                 cout << "\nInvalid choice! Try again.\n";
         }
 
-    } while (choice != 4);
+    } while (choice != 5);
 
     return 0;
 }
