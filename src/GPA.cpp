@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <vector>
 #include <fstream>
+#include <algorithm> // for transform (to uppercase)
 using namespace std;
 
 // ------- Course structure --------
@@ -19,7 +20,8 @@ struct Students {
     string name;
     vector<Course> courses;
 };
-// -------- Declaring function ------
+
+// -------- Function declarations ------
 void displayStudent(const Students& student);
 
 // ------ Letter Grade Support -------
@@ -57,9 +59,9 @@ double calculateGPA(Students stu) {
     for (Course course : stu.courses) {
         double gpa = 0.0;
 
-        if (course.gradeInput == "mark") {
+        if (course.gradeInput == "mark" || course.gradeInput == "MARK") {
             gpa = convertToGPA(course.numericScore);
-        } else if (course.gradeInput == "letter") {
+        } else if (course.gradeInput == "letter" || course.gradeInput == "LETTER") {
             gpa = convertLetterToGPA(course.letterGrade);
         }
 
@@ -103,17 +105,17 @@ void saveResultsToFile(const vector<Students>& students, const string& filename)
     outputFile.close();
     cout << "\n✅ Results saved to '" << filename << "' successfully!\n";
 }
-// -------Adding a function to search for students----
+
+// ------- Search Function -------
 void searchStudentByName(const vector<Students>& studentRecords) {
     string searchName;
     cout << "\nEnter student name to search: ";
-    cin.ignore(); // clear leftover newline
     getline(cin >> ws, searchName);
 
     bool found = false;
     for (const auto& student : studentRecords) {
         if (student.name == searchName) {
-            displayStudent(student);  // calls the display function we defined earlier
+            displayStudent(student);
             found = true;
             break;
         }
@@ -124,8 +126,28 @@ void searchStudentByName(const vector<Students>& studentRecords) {
     }
 }
 
+// ------- Display Student Details -------
+void displayStudent(const Students& student) {
+    double gpa = calculateGPA(student);
+    string classification = classifyGPA(gpa);
 
-// ------- Main Menu Function -------
+    cout << "\n======= STUDENT DETAILS =======\n";
+    cout << "Name: " << student.name << endl;
+    cout << fixed << setprecision(2);
+    cout << "GPA: " << gpa << " | Class: " << classification << endl;
+
+    cout << "Courses:\n";
+    for (const Course& course : student.courses) {
+        cout << " - " << course.name << " (";
+        if (course.gradeInput == "mark")
+            cout << course.numericScore;
+        else
+            cout << course.letterGrade;
+        cout << ", " << course.creditHours << " credit hours)\n";
+    }
+}
+
+// ------- Main Menu -------
 int main() {
     vector<Students> students;
     int choice;
@@ -135,19 +157,21 @@ int main() {
         cout << "1. Add Student & Courses\n";
         cout << "2. View GPA Results\n";
         cout << "3. Save Results to File\n";
-        cout << "4. Exit\n";
-        cout << "Enter your choice (1–4): ";
+        cout << "4. Search for a Student by Name\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice (1–5): ";
         cin >> choice;
 
         switch (choice) {
             case 1: {
                 Students student;
-                cin.ignore(); // Clear buffer
+                cin.ignore(); // Clear input buffer
+
                 cout << "\nEnter student name: ";
-                getline(cin, student.name);
-                // error handling for empty name
-                if (student.name .empty()){
-                    cout <<"❌ Name cannot be empty. Please try again.\n";
+                getline(cin >> ws, student.name);
+
+                if (student.name.empty()) {
+                    cout << "❌ Name cannot be empty. Please try again.\n";
                     break;
                 }
 
@@ -155,16 +179,16 @@ int main() {
                 cout << "Enter number of courses: ";
                 cin >> numCourses;
 
-                // error handling for invalid number of courses
-                if(numCourses <= 0) {
-                    cout <<"❌ Invalid number of courses. Please try again.\n";
+                if (numCourses <= 0) {
+                    cout << "❌ Invalid number of courses. Please try again.\n";
+                    break;
                 }
 
                 for (int c = 0; c < numCourses; c++) {
                     Course course;
-                    cin.ignore(); // Clear buffer before getline
+
                     cout << "\nEnter course " << (c + 1) << " name: ";
-                    getline(cin, course.name);
+                    getline(cin >> ws, course.name);
 
                     cout << "Enter grade type (mark or letter): ";
                     cin >> course.gradeInput;
@@ -172,23 +196,35 @@ int main() {
                     if (course.gradeInput == "mark") {
                         cout << "Enter numeric score (0-100): ";
                         cin >> course.numericScore;
-
-                        // error handling for invalid numeric score
-                        if (course.numericScore < 0 || course.numericScore >100) {
-                            cout <<"❌ Invalid score. Please enter a score between 0 and 100.\n";
+                        if (course.numericScore < 0 || course.numericScore > 100) {
+                            cout << "❌ Invalid score. Skipping this course.\n";
+                            continue;
                         }
                     } else if (course.gradeInput == "letter") {
                         cout << "Enter letter grade (A, B+, etc.): ";
                         cin >> course.letterGrade;
+
+                        // Convert to uppercase
+                        transform(course.letterGrade.begin(), course.letterGrade.end(), course.letterGrade.begin(), ::toupper);
                     } else {
-                        cout << "Invalid grade type. Skipping this course.\n";
+                        cout << "❌ Invalid grade type. Skipping this course.\n";
                         continue;
                     }
 
                     cout << "Enter credit hours: ";
                     cin >> course.creditHours;
 
+                    if (course.creditHours <= 0) {
+                        cout << "❌ Invalid credit hours. Skipping this course.\n";
+                        continue;
+                    }
+
                     student.courses.push_back(course);
+                }
+
+                if (student.courses.empty()) {
+                    cout << "⚠️ No valid courses added for this student. They won't be saved.\n";
+                    break;
                 }
 
                 students.push_back(student);
@@ -197,7 +233,7 @@ int main() {
 
             case 2: {
                 cout << "\n=========== GPA RESULTS ==========\n";
-                for (Students stu : students) {
+                for (const Students& stu : students) {
                     double gpa = calculateGPA(stu);
                     string classification = classifyGPA(gpa);
 
@@ -218,15 +254,17 @@ int main() {
             }
 
             case 4: {
+                cin.ignore(); // Clear buffer before search
                 searchStudentByName(students);
                 break;
             }
+
             case 5:
                 cout << "\nExiting the program. Goodbye!\n";
                 break;
 
             default:
-                cout << "\nInvalid choice! Try again.\n";
+                cout << "\n❌ Invalid choice! Try again.\n";
         }
 
     } while (choice != 5);
