@@ -146,7 +146,95 @@ void displayStudent(const Students& student) {
         cout << ", " << course.creditHours << " credit hours)\n";
     }
 }
+// Function to delete a student record
+void deleteStudentByName(vector<Students>& students) {
+    string nameToDelete;
+    cout << "\nEnter the name of the student to delete: ";
+    getline(cin >> ws, nameToDelete);
 
+    for (auto it = students.begin(); it != students.end(); ++it)  {
+        if (it ->name == nameToDelete) {
+            char confirm;
+            cout <<"Are you sure you want to delete " << nameToDelete << "? (y/n): ";
+            cin >> confirm;
+            if (tolower(confirm) == 'y'|| tolower(confirm) == 'yes ' || tolower(confirm) == 'Y') {
+                students.erase(it);
+                cout <<"\n✅ Student '" << nameToDelete << "' deleted successfully.\n";
+            }
+            else if( tolower(confirm) == 'n' || tolower(confirm) == 'no' || tolower(confirm) == 'N') {
+                cout <<"\n❌ Deletion cancelled.\n";
+            }
+            else {
+                cout <<"\n❌ Invalid input. Deletion cancelled.\n";
+            }
+            return; // Exit after deleting
+          
+    }
+}
+void editStudentByName(vector<Students>& students) {
+    string searchName;
+    cout <<"\nEnter student name to edit : ";
+    getline(cin >> ws, searchName);
+
+    for(auto& student : students ) {
+        if(student.name == searchName);{
+          cout <<"\nEditing student: " << student.name << endl;
+          cout <<"Enter new name (or press Enter to keep current): ";
+          string newName;
+          getline ( cin >> ws, newName);
+          if (!newName.empty()) {
+            student.name = newName;
+          }
+        }
+
+        // show current courses
+        cout <<"\nCourses for " << student.name << ":\n";
+        for (size_t i = 0; i < student.courses.size(); ++i) {
+            cout << i + 1 << ". " << student.courses[i].name << endl;
+        }
+
+        int courseIndex;
+        cout <<"\nEnter course number to edit (or 0 to skip): ";
+        cin >> courseIndex;
+
+        if (courseIndex > 0 && courseIndex <= student.courses.size()) {
+            Course& course = student.courses[courseIndex-1];
+            cin.ignore(); // Clear input buffer
+
+            cout <<"\nEditing course: " << course.name << course.name <<endl;
+            cout <<"Enter new course name (or press enter to keep):";
+            string newCourseName;
+            getline(cin, newCourseName);
+            if (!newCourseName.empty()) course.name= newCourseName;
+
+            cout <<"Enter new grade type (mark/letter) : ";
+            cin >>course.gradeInput;
+
+            if(course.gradeInput== "mark") {
+                cout <<"Enter new numeric score (0-100) :";
+                cin >> course.gradeInput;
+            }
+            else {
+                cout <<"Enter new letter grade(A,B+,etc) :" ;
+                cin >> course.letterGrade;
+                transform (course.letterGrade.begin)
+                
+            }
+            cout <<"Enter new credit hours :" ;
+            cin >> course.creditHours;
+
+            cout <<"Course updated sucessfully!!\n" ;
+
+            }
+            else {
+                cout <<"No course edited.\n " ;
+            }
+            return;
+
+    }
+            cout <<"Student'" << searchName << "not found.\n"
+}
+    
 // ------- Main Menu -------
 int main() {
     vector<Students> students;
@@ -158,8 +246,9 @@ int main() {
         cout << "2. View GPA Results\n";
         cout << "3. Save Results to File\n";
         cout << "4. Search for a Student by Name\n";
-        cout << "5. Exit\n";
-        cout << "Enter your choice (1–5): ";
+        cout << "5.Delete Student Record\n";
+        cout <<"6. Exit\n";
+        cout << "Enter your choice (1-6): ";
         cin >> choice;
 
         switch (choice) {
@@ -260,14 +349,19 @@ int main() {
             }
 
             case 5:
-                cout << "\nExiting the program. Goodbye!\n";
+            cin.ignore(); // Clear buffer before deletion
+                deleteStudentByName(students);
                 break;
-
+                
+            case 6: 
+             cout << "\nExiting the program. Goodbye!\n";
+                break;
+                
             default:
                 cout << "\n❌ Invalid choice! Try again.\n";
         }
 
-    } while (choice != 5);
+    } while (choice != 6);
 
     return 0;
 }
