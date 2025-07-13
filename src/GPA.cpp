@@ -237,6 +237,7 @@ void deleteStudentByName(vector<Students>& students) {
     cout << "\n❌ Student '" << nameToDelete << "' not found.\n";
 }
 
+// function to edit a student by name
 void editStudentByName(vector<Students>& students) {
     string searchName;
     cout << "\nEnter student name to edit: ";
@@ -245,6 +246,7 @@ void editStudentByName(vector<Students>& students) {
     for (auto& student : students) {
         if (student.name == searchName) {
             cout << "\nEditing student: " << student.name << endl;
+
             cout << "Enter new name (or press Enter to keep current): ";
             string newName;
             getline(cin >> ws, newName);
@@ -257,32 +259,62 @@ void editStudentByName(vector<Students>& students) {
 
             int courseIndex;
             cout << "\nEnter course number to edit (or 0 to skip): ";
-            cin >> courseIndex;
+            while (!(cin >> courseIndex) || courseIndex < 0 || courseIndex > student.courses.size()) {
+                cout << "❌ Invalid input. Enter a valid course number: ";
+                cin.clear();
+                cin.ignore(10000, '\n');
+            }
 
             if (courseIndex > 0 && courseIndex <= student.courses.size()) {
                 Course& course = student.courses[courseIndex - 1];
                 cin.ignore();
 
                 cout << "Editing course: " << course.name << endl;
+
+                // Course name
                 cout << "Enter new course name (or press Enter to keep): ";
                 string newCourseName;
                 getline(cin, newCourseName);
                 if (!newCourseName.empty()) course.name = newCourseName;
 
-                cout << "Enter new grade type (mark/letter): ";
+                // Grade type
+                cout << "Enter grade type (mark/letter): ";
                 cin >> course.gradeInput;
-
-                if (course.gradeInput == "mark") {
-                    cout << "Enter new numeric score (0-100): ";
-                    cin >> course.numericScore;
-                } else {
-                    cout << "Enter new letter grade (A, B+, etc.): ";
-                    cin >> course.letterGrade;
-                    transform(course.letterGrade.begin(), course.letterGrade.end(), course.letterGrade.begin(), ::toupper);
+                transform(course.gradeInput.begin(), course.gradeInput.end(), course.gradeInput.begin(), ::tolower);
+                while (course.gradeInput != "mark" && course.gradeInput != "letter") {
+                    cout << "❌ Invalid input. Enter 'mark' or 'letter': ";
+                    cin >> course.gradeInput;
+                    transform(course.gradeInput.begin(), course.gradeInput.end(), course.gradeInput.begin(), ::tolower);
                 }
 
+                // Grade value
+                if (course.gradeInput == "mark") {
+                    cout << "Enter numeric score (0–100): ";
+                    while (!(cin >> course.numericScore) || course.numericScore < 0 || course.numericScore > 100) {
+                        cout << "❌ Invalid score. Enter a number between 0 and 100: ";
+                        cin.clear();
+                        cin.ignore(10000, '\n');
+                    }
+                } else {
+                    cout << "Enter letter grade (A, B+, etc.): ";
+                    cin >> course.letterGrade;
+                    transform(course.letterGrade.begin(), course.letterGrade.end(), course.letterGrade.begin(), ::toupper);
+
+                    vector<string> validGrades = {"A", "B+", "B", "B-", "C+", "C", "C-", "D", "F"};
+                    while (find(validGrades.begin(), validGrades.end(), course.letterGrade) == validGrades.end()) {
+                        cout << "❌ Invalid letter grade. Try again: ";
+                        cin >> course.letterGrade;
+                        transform(course.letterGrade.begin(), course.letterGrade.end(), course.letterGrade.begin(), ::toupper);
+                    }
+                }
+
+                // Credit hours
                 cout << "Enter new credit hours: ";
-                cin >> course.creditHours;
+                while (!(cin >> course.creditHours) || course.creditHours <= 0) {
+                    cout << "❌ Invalid credit hours. Enter a positive number: ";
+                    cin.clear();
+                    cin.ignore(10000, '\n');
+                }
 
                 cout << "✅ Course updated successfully!\n";
             } else {
@@ -293,8 +325,9 @@ void editStudentByName(vector<Students>& students) {
         }
     }
 
-    cout << " Student '" << searchName << "' not found.\n";
+    cout << "\n❌ Student '" << searchName << "' not found.\n";
 }
+
 
 // ------- Main Program --------
 int main() {
@@ -312,8 +345,13 @@ int main() {
         cout << "7. Edit a Student\n";
         cout << "8. Delete a Student\n";
         cout << "9. Exit\n";
-        cout << "Enter your choice (1–9): ";
-        cin >> choice;
+        cout << "Enter your choice (1-9): ";
+        // input validation for choice
+        while((!cin >> choice) || choice < 1 || choice > 9) {
+            cout << "❌ Invalid input! PLease enter a number between 1 and 9: ";
+            cin.clear(); // Clear the error flag
+            cin.ignore(10000, '\n'); // Discard invalid input 
+        }
 
         switch (choice) {
             case 1: {
@@ -324,7 +362,12 @@ int main() {
 
                 int numCourses;
                 cout << "Enter number of courses: ";
-                cin >> numCourses;
+                // input validation
+                while(!(cin >> numCourses) || numCourses <= 0) {
+                    cout <<"Invalid number. Enter a positive number : " ;
+                    cin.clear();
+                    cin.ignore(10000,'\n');
+                }
 
                 for (int i = 0; i < numCourses; ++i) {
                     Course course;
@@ -336,7 +379,12 @@ int main() {
 
                     if (course.gradeInput == "mark") {
                         cout << "Enter numeric score (0-100): ";
-                        cin >> course.numericScore;
+                        // input validation for numeric score entry
+                        while (!(cin >> course.numericScore) || course.numericScore < 0 || course.numericScore > 100) {
+                            cout <<" Invalid score. Please enter a number between 0 and 100:" ;
+                            cin.clear();
+                            cin.ignore(10000, '\n');
+                        }
                     } else {
                         cout << "Enter letter grade: ";
                         cin >> course.letterGrade;
@@ -344,7 +392,12 @@ int main() {
                     }
 
                     cout << "Enter credit hours: ";
-                    cin >> course.creditHours;
+                    // input validation for credit hours entry
+                    while (!(cin >> course.creditHours) || course.creditHours <= 0) {
+                        cout <<"Invalid credit hours. Enter a positive number :";
+                        cin.clear();
+                        cin.ignore(10000, '\n');
+                    }
 
                     student.courses.push_back(course);
                 }
